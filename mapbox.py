@@ -4,11 +4,14 @@ import uuid
 import json
 import datetime;
 
-def checkDataset(res):
+def checkDataset(res, temp):
     lng = res['lng']
     lat = res['lat']
     list = []
     lnglat = [lng, lat]
+    if lnglat in temp:
+        raise Exception("The city you tried to add is already on the map! \n**If this is a mistake message jozef#2508** :)")
+        
     url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features?access_token=' + constants.MAPBOX_TOKEN
     resp = requests.get(url)
     if(resp.status_code == 200):
@@ -28,8 +31,8 @@ def checkDataset(res):
         code = resp.status_code
         resp.close()
         raise Exception("Could not fetch databases, code: " + str(code))
-   
-      
+
+
 def addToDataset(res):
     lng = res['lng']
     lat = res['lat']
@@ -47,7 +50,7 @@ def addToDataset(res):
         },
         "properties": {
             "Name": vals,
-            "Added": datetime.datetime.now()
+            "Added": str(datetime.datetime.now())
         }
     }
 
@@ -58,4 +61,4 @@ def addToDataset(res):
         resp.close()
         raise Exception("Could not add to dataset, code: " + str(code))
 
-    return True
+    return [lng, lat]

@@ -8,9 +8,12 @@ import discord
 import constants
 import pandas as pd
 import mapbox as mb
+import datetime;
+
 
 client = discord.Client()
 channel = client.get_channel(876594408638783518)
+temp = []
 
 def main():
     global df
@@ -47,16 +50,35 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    
+    #Notts2021 bot spam channel
+    spamchannel = client.get_channel(859436872426455048)
+
+    #Beach testing channel
+    #spamchannel = client.get_channel(876594408638783518)
+    embedVar = discord.Embed(title="New Command to MaxMap", color=0xff0080)
+    embedVar.set_author(name=(message.author.nick + " | " + message.author.name + message.author.discriminator), icon_url=message.author.avatar_url)
+    embedVar.add_field(name="Message:", value=message.content, inline=False)
+    embedVar.add_field(name="Time:", value=str(datetime.datetime.now()), inline=False)
+    await spamchannel.send(embed=embedVar)
+
     if message.content.startswith('!add'):
         global sended
         sended = message
-        message = message.content.strip("!add")
-        split = message.split(',')
+        strip = message.content.strip("!add")
+        split = strip.split(',')
         city = split[0]
         country = split[1]
         city = city.lstrip()
         country = country.lstrip()
-       
+
+
+        embedVar = discord.Embed(title="New Command to MaxMap", color=0xff0080)
+        embedVar.set_author(name=(message.author.nick + " | " + message.author.name + message.author.discriminator), icon_url=message.author.avatar_url)
+        embedVar.add_field(name="Message:", value=message.content, inline=False)
+        embedVar.add_field(name="Time:", value=str(datetime.datetime.now()), inline=False)
+        await spamchannel.send(embed=embedVar)
+
         if(validStr(city, country)):
             res = add(city, country)
             if(res.empty):
@@ -64,15 +86,20 @@ async def on_message(message):
             else:
                 if(res.shape[1] > 1):
                     res = res.iloc[0]
-                print(res)
                 try: 
-                    mb.checkDataset(res)
+                    mb.checkDataset(res, temp)
                     try:
-                        mb.addToDataset(res)
+                        ret = mb.addToDataset(res)
+                        temp.append(ret)
                         await sended.channel.send("City Added to Map!")
                     except Exception as e:
                         await sended.channel.send(e)
                 except Exception as e:
                     await sended.channel.send(e)
-                    
+
+    if message.content.startswith('!help'):
+        helpembed = discord.Embed(title="MaxMap Help", description="**Type in '!add', followed by your city (above 10,000 population), and the country it is in.** \n **For example:** !add Nottingham, United Kingdom.",color=0xff0080)
+        helpembed.set_footer(text="If you are having issues message/mention @jozef")
+        await message.channel.send(embed=helpembed)
+        
 client.run(constants.DISCORD_BOT_TOKEN)
