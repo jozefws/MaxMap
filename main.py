@@ -2,14 +2,12 @@
 """
 Created on Sun Aug 15 23:21:49 2021
 
-@author: jozef
+@author: jozef sieniawski
 """
 import discord
 import constants
 import pandas as pd
 import mapbox as mb
-
-
 
 client = discord.Client()
 channel = client.get_channel(876594408638783518)
@@ -20,9 +18,6 @@ def main():
     df = df.drop(columns=["iso2","iso3","capital","population","id"])
     global channel
     
-async def updateMap():
-    await mapmsg.edit(embed="https://00000111.co.uk/map.html")
-
 if __name__ == '__main__':
     main()
 
@@ -75,10 +70,9 @@ async def on_message(message):
                     try:
                         mb.addToDataset(res)
                         await sended.channel.send("City Added to Map!")
-                        await updateMap()
                     except Exception as e:
                         await sended.channel.send(e)
                 except Exception as e:
                     await sended.channel.send(e)
-                
+                    
 client.run(constants.DISCORD_BOT_TOKEN)
