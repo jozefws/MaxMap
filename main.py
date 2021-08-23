@@ -7,22 +7,21 @@ Created on Sun Aug 15 23:21:49 2021
 import discord
 import constants
 import pandas as pd
-import requests
 import mapbox as mb
+
+
 
 client = discord.Client()
 channel = client.get_channel(876594408638783518)
 
 def main():
     global df
-    global mapmsg
     df = pd.read_csv('worldcities.csv', index_col=0)
     df = df.drop(columns=["iso2","iso3","capital","population","id"])
-   
+    global channel
     
-
 async def updateMap():
-    await channel.send("Updating...")
+    await mapmsg.edit(embed="https://00000111.co.uk/map.html")
 
 if __name__ == '__main__':
     main()
@@ -30,7 +29,10 @@ if __name__ == '__main__':
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-    
+    channel = client.get_channel(876594408638783518)
+    embedVar = discord.Embed(title="UoN CS Cities", description="Click on link to view interactive Map", url="https://00000111.co.uk/map.html")
+    embedVar.set_thumbnail(url="https://00000111.co.uk/map.html")
+    await channel.send(embed=embedVar)
 
 def validStr(city, country):
     if(city != "" and city.isnumeric() == False and country != "" and country.isnumeric() == False):
@@ -71,14 +73,12 @@ async def on_message(message):
                 try: 
                     mb.checkDataset(res)
                     try:
-                        mb.addT(res)
+                        mb.addToDataset(res)
                         await sended.channel.send("City Added to Map!")
                         await updateMap()
-
                     except Exception as e:
                         await sended.channel.send(e)
                 except Exception as e:
                     await sended.channel.send(e)
-
-            
+                
 client.run(constants.DISCORD_BOT_TOKEN)
