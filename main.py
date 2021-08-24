@@ -95,9 +95,8 @@ async def on_message(message):
         await message.channel.send(embed=helpembed)
         
     if message.content.startswith('!map'):
-        channel = client.get_channel(cn.staff)
         embedVar = discord.Embed(title="UoN CS Cities", description="Click on link to view interactive Map", url="https://00000111.co.uk/map.html")
         embedVar.set_thumbnail(url="https://00000111.co.uk/map.html")
-        await channel.send(embed=embedVar)
+        await message.channel.send(embed=embedVar)
 
 client.run(cn.DISCORD_BOT_TOKEN)
