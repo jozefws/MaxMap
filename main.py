@@ -52,7 +52,7 @@ async def on_message(message):
         embedVar.set_author(name=(message.author.nick + " | " + message.author.name + message.author.discriminator), icon_url=message.author.avatar_url)
         embedVar.add_field(name="Message:", value=message.content, inline=False)
         embedVar.add_field(name="Time:", value=str(datetime.datetime.now()), inline=False)
-        await client.get_channel(cn.spam).send(embed=embedVar)
+        await client.get_channel(cn.staff).send(embed=embedVar)
 
     if message.content.startswith('!add'):
         global sended
