@@ -59,7 +59,7 @@ async def on_message(message):
         else:
             strip = strip.title()
             split = strip.split(',')
-            if(split[1] == ""):
+            if(len(split) == 1):
                 await sended.channel.send("Please enter a city and country - For help do !maphelp")
             else:
                 city = split[0]
