@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Nottingham CS Undergraduate Cities</title>
+		<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+		<link href="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css" rel="stylesheet">
+		<script src="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js"></script>
+		<script src="constants.js"></script>
+		<style>
+			body { margin: 0; padding: 0; }
+			#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+		</style>
+	</head>
+<body>
+<div id="map"></div>
+ 
+<script>
+	mapboxgl.accessToken = MAPBOX_TOKEN;
+	const map = new mapboxgl.Map({
+		container: 'map',
+		style: 'mapbox://styles/mapbox/streets-v11',
+		center: [-0.118092, 51.509865],
+		zoom: 4
+	});
+
+	var xhttp = new XMLHttpRequest();
+	var pkId = 'pk.eyJ1Ijoiam96ZWYtNyIsImEiOiJja3NueXU0YngwaTVxMnhvNmV5NHdpMjMxIn0.9f-rE6J2kHbeONG25YJZfA'
+	var dsId = 'cksnup7h90mot28s2q91ie5yp'
+	var url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + dsId + '/features?access_token=' + pkId 
+	console.log(url)
+	xhttp.open("GET", url, true);
+	xhttp.send(); 
+
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			var resp = String(xhttp.responseText);
+			resp = JSON.parse(resp);
+			resp = resp.features;
+			for(let i = 0; i < resp.length; i++){
+				console.log(resp[i].geometry.coordinates[0]+", "+resp[i].geometry.coordinates[1]);
+				latlng = {lng: resp[i].geometry.coordinates[0], lat: resp[i].geometry.coordinates[1]}
+				var marker = new mapboxgl.Marker()
+				.setLngLat(latlng)
+				.addTo(map);
+			}
+		}
+	  };
+	  
+</script>
+ 
+</body>
+</html>
+
+Copy
+© MapboxTermsPrivacySecurity
