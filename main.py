@@ -27,10 +27,6 @@ if __name__ == '__main__':
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-    channel = client.get_channel(cn.staff)
-    embedVar = discord.Embed(title="UoN CS Cities", description="Click on link to view interactive Map", url="https://00000111.co.uk/map.html")
-    embedVar.set_thumbnail(url="https://00000111.co.uk/map.html")
-    await channel.send(embed=embedVar)
 
 def validStr(city, country):
     if(city != "" and city.isnumeric() == False and country != "" and country.isnumeric() == False):
@@ -89,12 +85,12 @@ async def on_message(message):
                         except Exception as e:
                             await sended.channel.send(e)
 
-    if message.content.startswith('!maphelp'):
+    if message.content == '!maphelp':
         helpembed = discord.Embed(title="MaxMap Help", description="**Type in '!add', followed by your city (above 10,000 population), and the country it is in.** \n **For example:** !add Nottingham, United Kingdom. \n\n Please note, the dataset that I am using for Cities and Countries is public, and so it may not be up-to-date or politically correct.",color=0xff0080)
         helpembed.set_footer(text="If you are having issues message/mention @jozef")
         await message.channel.send(embed=helpembed)
         
-    if message.content.startswith('!map'):
+    if message.content == '!map':
         embedVar = discord.Embed(title="UoN CS Cities", description="Click on link to view interactive Map", url="https://00000111.co.uk/map.html")
         embedVar.set_thumbnail(url="https://00000111.co.uk/map.html")
         await message.channel.send(embed=embedVar)
