@@ -27,7 +27,7 @@ if __name__ == '__main__':
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-    channel = client.get_channel(cn.spam)
+    channel = client.get_channel(cn.staff)
     embedVar = discord.Embed(title="UoN CS Cities", description="Click on link to view interactive Map", url="https://00000111.co.uk/map.html")
     embedVar.set_thumbnail(url="https://00000111.co.uk/map.html")
     await channel.send(embed=embedVar)
@@ -52,7 +52,7 @@ async def on_message(message):
         embedVar.set_author(name=(message.author.nick + " | " + message.author.name + message.author.discriminator), icon_url=message.author.avatar_url)
         embedVar.add_field(name="Message:", value=message.content, inline=False)
         embedVar.add_field(name="Time:", value=str(datetime.datetime.now()), inline=False)
-        await client.get_channel(cn.staff).send(embed=embedVar)
+        await client.get_channel(cn.spam).send(embed=embedVar)
 
     if message.content.startswith('!add'):
         global sended
@@ -95,7 +95,7 @@ async def on_message(message):
         await message.channel.send(embed=helpembed)
         
     if message.content.startswith('!map'):
-        channel = client.get_channel(cn.spam)
+        channel = client.get_channel(cn.staff)
         embedVar = discord.Embed(title="UoN CS Cities", description="Click on link to view interactive Map", url="https://00000111.co.uk/map.html")
         embedVar.set_thumbnail(url="https://00000111.co.uk/map.html")
         await channel.send(embed=embedVar)
