@@ -12,7 +12,7 @@ import datetime;
 
 
 client = discord.Client()
-channel = client.get_channel(cn.spam)
+channel = client.get_channel(cn.staff)
 temp = []
 
 def main():
@@ -47,7 +47,7 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.channel == client.get_channel(cn.spam) and  message.content.startswith('!add'):
+    if message.channel == client.get_channel(cn.staff) and  message.content.startswith('!add'):
         embedVar = discord.Embed(title="New Command to MaxMap", color=0xff0080)
         embedVar.set_author(name=(message.author.nick + " | " + message.author.name + message.author.discriminator), icon_url=message.author.avatar_url)
         embedVar.add_field(name="Message:", value=message.content, inline=False)
@@ -63,28 +63,31 @@ async def on_message(message):
         else:
             strip = strip.title()
             split = strip.split(',')
-            city = split[0]
-            country = split[1]
-            city = city.lstrip(" ")
-            country = country.lstrip(" ")
+            if(split[1] == ""):
+                await sended.channel.send("Please enter a city and country - For help do !maphelp")
+            else:
+                city = split[0]
+                country = split[1]
+                city = city.lstrip(" ")
+                country = country.lstrip(" ")
 
-            if(validStr(city, country)):
-                res = add(city, country)
-                if(res.empty):
-                    await sended.channel.send((city + ", " + country + ' not found, check spelling - Or try English spelling.'))
-                else:
-                    if(res.shape[1] > 1):
-                        res = res.iloc[0]
-                    try: 
-                        mb.checkDataset(res, temp)
-                        try:
-                            ret = mb.addToDataset(res)
-                            temp.append(ret)
-                            await sended.channel.send("City Added to Map! - Give it a few minutes to update.")
+                if(validStr(city, country)):
+                    res = add(city, country)
+                    if(res.empty):
+                        await sended.channel.send((city + ", " + country + ' not found, check spelling - Or try English spelling.'))
+                    else:
+                        if(res.shape[1] > 1):
+                            res = res.iloc[0]
+                        try: 
+                            mb.checkDataset(res, temp)
+                            try:
+                                ret = mb.addToDataset(res)
+                                temp.append(ret)
+                                await sended.channel.send("City Added to Map! - Give it a few minutes to update.")
+                            except Exception as e:
+                                await sended.channel.send(e)
                         except Exception as e:
                             await sended.channel.send(e)
-                    except Exception as e:
-                        await sended.channel.send(e)
 
     if message.content.startswith('!maphelp'):
         helpembed = discord.Embed(title="MaxMap Help", description="**Type in '!add', followed by your city (above 10,000 population), and the country it is in.** \n **For example:** !add Nottingham, United Kingdom. \n\n Please note, the dataset that I am using for Cities and Countries is public, and so it may not be up-to-date or politically correct.",color=0xff0080)
