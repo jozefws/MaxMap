@@ -95,7 +95,7 @@ async def on_message(message):
         embedVar.set_thumbnail(url="https://00000111.co.uk/map.html")
         await message.channel.send(embed=embedVar)
 
-    if message.content == '!phd' and message.channel == cn.mentor:
+    if message.content == '!reecedowhatyouwannado' and message.channel == client.get_channel(cn.mentor):
         await message.channel.send("Reece do a phd haha xD <@281693374116003841>")
 
 client.run(cn.DISCORD_BOT_TOKEN)
