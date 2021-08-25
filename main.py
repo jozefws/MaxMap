@@ -98,7 +98,7 @@ async def on_message(message):
     if message.content == '!reecedowhatyouwannado' and message.channel == client.get_channel(cn.mentor):
         await message.channel.send("Reece do a phd haha xD <@281693374116003841>")
 
-    if message.content == '!reece ' and message.channel == client.get_channel(cn.mentor):
+    if message.content == '!reece' and message.channel == client.get_channel(cn.mentor):
         await message.channel.send("https://cdn.discordapp.com/attachments/859436872597897257/880154423958061127/reece.png")
     
     if message.content == '!max' and message.channel == client.get_channel(cn.mentor):
