@@ -104,7 +104,7 @@ async def on_message(message):
     if message.content == '!max' and message.channel == client.get_channel(cn.mentor):
         await message.channel.send("https://cdn.discordapp.com/attachments/859436872597897257/880154794097000528/MaxMapIcon.png")
 
-    if message.content == '!comm' and message.author.id == 155339919735128065
+    if message.content == '!comm' and message.author.id == 155339919735128065:
         strip = message.content.replace("!comm", "")
         split = strip.split(',')
         channel = split[0].lstrip(" ")
