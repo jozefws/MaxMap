@@ -43,6 +43,8 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    print(message.author)
+    
     if message.channel == client.get_channel(cn.staff) and  message.content.startswith('!add'):
         embedVar = discord.Embed(title="New Command to MaxMap", color=0xff0080)
         embedVar.set_author(name=(message.author.nick + " | " + message.author.name + message.author.discriminator), icon_url=message.author.avatar_url)
@@ -91,7 +93,7 @@ async def on_message(message):
         await message.channel.send(embed=helpembed)
         
     if message.content == '!map':
-        embedVar = discord.Embed(title="UoN CS Cities", description="Click on link to view interactive Map", url="https://00000111.co.uk/map.html")
+        embedVar = discord.Embed(title="UoN CS Cities", description="Click on link to view interactive Map", url="http://www.cs.nott.ac.uk/~pszmw/MaxMap/Web/map.html")
         embedVar.set_thumbnail(url="http://www.cs.nott.ac.uk/~pszmw/MaxMap/Web/map.html")
         await message.channel.send(embed=embedVar)
 
