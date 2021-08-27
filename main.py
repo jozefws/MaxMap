@@ -40,7 +40,7 @@ async def on_message(message):
         user = message.author
         #Send Log Message
         embedVar = discord.Embed(title="New Command to MaxMap", color=0xff0080)
-        embedVar.set_author(name=(message.author.nick + " | " + message.author.name + message.author.discriminator), icon_url=message.author.avatar_url)
+        embedVar.set_author(name=(str(message.author.nick) + " | " + str(message.author.name) + str(message.author.discriminator)), icon_url=message.author.avatar_url)
         embedVar.add_field(name="Message:", value=message.content, inline=False)
         embedVar.add_field(name="Time:", value=str(datetime.datetime.now()), inline=False)
         await client.get_channel(cn.spam).send(embed=embedVar)
@@ -67,10 +67,11 @@ async def on_message(message):
                 if(validStr(city, country)):
                     #Fetch City from spreadsheet, if empty error, if more than one choose first.
                     res = add(city, country)
-                    rescheck = True
+                    rescheck = False
                     if(country == "United Kingdom"):
                         resuk = adduk(city)  
-                        print(resuk.head)                      
+                        print(resuk.head)           
+                        rescheck = False           
                         if(resuk.empty):
                             print("Empty")
                             rescheck = False
