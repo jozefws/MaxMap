@@ -15,10 +15,15 @@ client = discord.Client()
 temp = []
 
 def main():
-    global df
+    global df, dfuk, dfcount
     df = pd.read_csv('worldcities.csv', index_col=0)
     df = df.drop(columns=["iso2","iso3","capital","population","id"])
     
+    dfuk = pd.read_csv('uk-towns.csv', index_col=0)
+    dfuk = dfuk.drop(columns=["country","county","grid_reference","easting","northing","type", "postcode_area"])
+    
+    dfcount = pd.read_csv('citycount.csv', index_col=0)
+
 if __name__ == '__main__':
     main()
 
@@ -32,7 +37,7 @@ async def on_message(message):
         return
 
     if message.content.startswith('!add'):
-
+        user = message.author
         #Send Log Message
         embedVar = discord.Embed(title="New Command to MaxMap", color=0xff0080)
         embedVar.set_author(name=(message.author.nick + " | " + message.author.name + message.author.discriminator), icon_url=message.author.avatar_url)
@@ -62,24 +67,50 @@ async def on_message(message):
                 if(validStr(city, country)):
                     #Fetch City from spreadsheet, if empty error, if more than one choose first.
                     res = add(city, country)
-                    if(res.empty):
+                    rescheck = True
+                    if(country == "United Kingdom"):
+                        resuk = adduk(city)  
+                        print(resuk.head)                      
+                        if(resuk.empty):
+                            print("Empty")
+                            rescheck = False
+
+                    if(res.empty and rescheck == False):
                         await sended.channel.send((city + ", " + country + ' not found, check spelling - Try without symbols, ASCII characters only.'))
                     else:
-                        if(res.shape[1] > 1):
-                            res = res.iloc[0]
+                        if(res.empty):
+                            #RESUK becomes RES
+                            res = resuk
+                            if(res.shape[1] > 1):
+                                res = res.iloc[0]
+                        else:
+                            if(res.shape[1] > 1):
+                                res = res.iloc[0]
                         try: 
                             #Check dataset with current city, pass through temp array too
+                            
                             mb.checkDataset(res, temp)
                             try:
                                 #Append the return value to temp
-                                ret = mb.addToDataset(res)
-                                temp.append(ret)
+                                ret = mb.addToDataset(res, user)
+                                print("Temp\n")
+                                retli = [ret['lng'], ret['lat']]
+                                print(retli)
+                                print("End Temp\n")
+                                temp.append(retli)
+                                countadd(ret, city)
                                 #Send update to channel sent from
                                 await sended.channel.send("City/Town Added to Map! - Give it a few minutes to update.")
                             except Exception as e:
-                                await sended.channel.send(e)
+                                await sended.channel.send("Error in addToDataset " + str(e))
                         except Exception as e:
-                            await sended.channel.send(e)
+                            if(str(e) == "AEE"):
+                                countupdate(res, city)
+                                await sended.channel.send("Your city is already in the list so it has been added to the counter!\n")
+                            else:
+                                await sended.channel.send(e)
+                            
+                            
 
     #Extra Commands
     if message.content == '!maphelp':
@@ -94,7 +125,11 @@ async def on_message(message):
 
     if message.content == '!reece' and message.channel == client.get_channel(cn.mentor):
         await message.channel.send("https://cdn.discordapp.com/attachments/859436872597897257/880154423958061127/reece.png")
-    
+
+    if message.content == "?student":
+        role = message.guild.get_role(859436870425509926)
+        await message.channel.send(len(role.members))
+
 #Checks string size and value for both city and country
 def validStr(city, country):
     if(city != "" and city.isnumeric() == False and country != "" and country.isnumeric() == False):
@@ -107,5 +142,36 @@ def add(city, country):
     res = df.query("(city_ascii=='%s' | admin_name=='%s') & country=='%s'" % (city, city, country))
     return res
 
-   
+def adduk(city):
+    res = dfuk.query("place_name=='%s'" % (city))
+    return res
+
+
+def countadd(send, city):
+    global dfcount
+    res = dfcount.query("city=='%s'" % (city))
+    if(res.empty):
+        print("New\n\n")
+        newrow = {'city':city,'count': 1,'lat': send['lat'],'lng': send['lng']}
+        dfcount = dfcount.append(newrow, ignore_index=True)
+        dfcount.to_csv('citycount.csv', mode='w', header=True)
+    else:
+       countupdate(send, city)
+    return True
+
+def countupdate(send, city):
+    global dfcount
+    res = dfcount.query("city=='%s'" % (city))
+    if(res.empty):
+       countadd(send, city)
+    else:
+        print("Update")
+        print(dfcount.head())
+        res = dfcount.query("city=='%s'" % (city))
+        dfcount.at[res.index[res['city'] == city].tolist()[0], "count"] += 1
+        dfcount.to_csv('citycount.csv', mode='w', header=True)
+        print("AFTER RELOAD\n")
+        print(dfcount.head())
+    return True
+
 client.run(cn.DISCORD_BOT_TOKEN)

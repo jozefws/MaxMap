@@ -10,8 +10,12 @@ def checkDataset(res, temp):
     list = []
     lnglat = [lng, lat]
     if lnglat in temp:
-        raise Exception("The city you tried to add is already on the map! \n**If this is a mistake message jozef#2508** :)")
-        
+        raise Exception("AEE")
+    # else:
+        # print(lnglat)
+        # print("\nwas not in:\n") 
+        # print(temp)
+
     url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features?access_token=' + constants.MAPBOX_TOKEN
     resp = requests.get(url)
     if(resp.status_code == 200):
@@ -24,7 +28,8 @@ def checkDataset(res, temp):
 
         if lnglat in list:
             resp.close()
-            raise Exception("The city you tried to add is already on the map! \n**If this is a mistake message jozef#2508** :)")
+            raise Exception("AEE")
+            #raise Exception("The city you tried to add is already on the map! \n**If this is a mistake message jozef#2508** :)")
         else:
            return True
     else:
@@ -33,10 +38,9 @@ def checkDataset(res, temp):
         raise Exception("Could not fetch databases, code: " + str(code))
 
 
-def addToDataset(res):
+def addToDataset(res, user):
     lng = res['lng']
     lat = res['lat']
-    vals = res['city_ascii'] + ", " + res['admin_name'] + ", " + res['country']
     feature_id = str(uuid.uuid4())
     url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features/'+ feature_id + '?access_token=' + constants.MAPBOX_TOKEN
     header = {"Content-Type" : "application/json"}
@@ -49,7 +53,7 @@ def addToDataset(res):
             "coordinates": [lng, lat]
         },
         "properties": {
-            "Name": vals,
+            "Name": str(user),
             "Added": str(datetime.datetime.now())
         }
     }
@@ -61,4 +65,4 @@ def addToDataset(res):
         resp.close()
         raise Exception("Could not add to dataset, code: " + str(code))
 
-    return [lng, lat]
+    return {"lat": lat, "lng": lng}
