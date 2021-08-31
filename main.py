@@ -62,7 +62,8 @@ async def on_message(message):
                 #Removes any extra spacing
                 city = split[0].lstrip(" ")
                 country = split[1].lstrip(" ")
-
+                city = city.replace("'", "")
+                country = country.replace("'", "")
                 #Further checks.
                 if(validStr(city, country)):
                     #Fetch City from spreadsheet, if empty error, if more than one choose first.
@@ -71,7 +72,7 @@ async def on_message(message):
                     if(country == "United Kingdom"):
                         resuk = adduk(city)  
                         print(resuk.head)           
-                        rescheck = False           
+                        rescheck = True           
                         if(resuk.empty):
                             print("Empty")
                             rescheck = False
