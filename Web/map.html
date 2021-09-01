@@ -10,22 +10,42 @@
 		<style>
 			body { margin: 0; padding: 0; }
 			#map { position: absolute; top: 0; bottom: 0; width: 100%; }
-.marker {width:0; height:0;}
-.marker  span {
+.marker {
+  width:0; 
+  height:0;
+}
+.marker span {
   display:flex;
   justify-content:center;
   align-items:center;
   box-sizing:border-box;
-  width: 30px;
-  height: 30px;
   color:#fff;
-  background: #252679;
   border:solid 2px;
   border-radius: 0 70% 70%;
   box-shadow:0 0 2px #000;
   cursor: pointer;
   transform-origin:0 0;
 }
+.marker1  span {
+  width: 20px;
+  height: 20px;
+  background: #009bbd;
+  z-index: -1000;
+}
+.marker2  span {
+  width: 25px;
+  height: 25px;
+  background: #005597;
+  z-index: 10;
+}
+.marker3  span {
+  width: 30px;
+  height: 30px;
+  background: #18194f;
+  z-index: 30000;
+}
+
+
 		</style>
 	</head>
 <body>
@@ -53,12 +73,25 @@
 			var resp = String(xhttp.responseText);
 			resp = JSON.parse(resp);
 			resp = resp.features;
+			console.log(resp);
+			resp.sort(function(a,b) {
+				return a.properties.Count - b.properties.Count;
+			});
 			for(let i = 0; i < resp.length; i++){
 				console.log(resp[i].geometry.coordinates[0]+", "+resp[i].geometry.coordinates[1]);
 				console.log(resp[i]);
 				latlng = {lng: resp[i].geometry.coordinates[0], lat: resp[i].geometry.coordinates[1]}
 				var icon = document.createElement('div');
-				icon.className = 'marker';
+				icon.classList.add('marker');
+				if (resp[i].properties.Count <= 1) {
+					icon.classList.add('marker1');
+				} else if (resp[i].properties.Count < 5) {
+					icon.classList.add('marker2');
+				} else if (resp[i].properties.Count >= 5) {
+					icon.classList.add('marker3');
+				} else {
+					icon.classList.add('marker1');
+				}
 				icon.innerHTML = "<span><b>"+resp[i].properties.Count+"</b></span>";
 				var marker = new mapboxgl.Marker(icon)
 				.setLngLat(latlng)
@@ -66,6 +99,7 @@
 			}
 		}
 	  };
+
 	  
 </script>
  
