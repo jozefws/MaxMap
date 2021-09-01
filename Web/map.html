@@ -74,25 +74,34 @@
 			resp = JSON.parse(resp);
 			resp = resp.features;
 			console.log(resp);
+			//sorts them so that the biggest numbers get put on last (in front)
 			resp.sort(function(a,b) {
-				return a.properties.Count - b.properties.Count;
+				//deals with any undefineds - converts them to 1 for comparison
+				var tempa = a.properties.Count;
+				var tempb = b.properties.Count;
+				if (tempa == null) { tempa = 1 };
+				if (tempb == null) { tempb = 1 };
+				return tempa - tempb;
 			});
 			for(let i = 0; i < resp.length; i++){
 				console.log(resp[i].geometry.coordinates[0]+", "+resp[i].geometry.coordinates[1]);
-				console.log(resp[i]);
 				latlng = {lng: resp[i].geometry.coordinates[0], lat: resp[i].geometry.coordinates[1]}
 				var icon = document.createElement('div');
 				icon.classList.add('marker');
-				if (resp[i].properties.Count <= 1) {
+				//sets a different marker size depending on number of people living there
+				var tempCount = resp[i].properties.Count;
+				if (tempCount <= 1) {
 					icon.classList.add('marker1');
-				} else if (resp[i].properties.Count < 5) {
+				} else if (tempCount < 5) {
 					icon.classList.add('marker2');
-				} else if (resp[i].properties.Count >= 5) {
+				} else if (tempCount >= 5) {
 					icon.classList.add('marker3');
 				} else {
+					//basically if undefined, set to 1.
 					icon.classList.add('marker1');
+					tempCount = 1;
 				}
-				icon.innerHTML = "<span><b>"+resp[i].properties.Count+"</b></span>";
+				icon.innerHTML = "<span><b>"+tempCount+"</b></span>";
 				var marker = new mapboxgl.Marker(icon)
 				.setLngLat(latlng)
 				.addTo(map);
