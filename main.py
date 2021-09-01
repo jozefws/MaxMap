@@ -22,7 +22,7 @@ def main():
     dfuk = pd.read_csv('uk-towns.csv', index_col=0)
     dfuk = dfuk.drop(columns=["country","county","grid_reference","easting","northing","type", "postcode_area"])
     
-    dfcount = pd.read_csv('citycount.csv', index_col=0)
+    #dfcount = pd.read_csv('citycount.csv', index_col=0)
 
 if __name__ == '__main__':
     main()
@@ -90,27 +90,20 @@ async def on_message(message):
                                 res = res.iloc[0]
                         try: 
                             #Check dataset with current city, pass through temp array too
-                            
                             mb.checkDataset(res, temp)
                             try:
                                 #Append the return value to temp
                                 ret = mb.addToDataset(res, user)
-                                print("Temp\n")
-                                retli = [ret['lng'], ret['lat']]
-                                print(retli)
-                                print("End Temp\n")
-                                temp.append(retli)
-                                countadd(ret, city)
+                                temp.append(ret)
                                 #Send update to channel sent from
                                 await sended.channel.send("City/Town Added to Map! - Give it a few minutes to update.")
                             except Exception as e:
                                 await sended.channel.send("Error in addToDataset " + str(e))
                         except Exception as e:
                             if(str(e) == "AEE"):
-                                countupdate(res, city)
                                 await sended.channel.send("Your city is already in the list so it has been added to the counter!\n")
                             else:
-                                await sended.channel.send(e)
+                                print(e)
                             
                             
 
@@ -147,33 +140,5 @@ def add(city, country):
 def adduk(city):
     res = dfuk.query("place_name=='%s'" % (city))
     return res
-
-
-def countadd(send, city):
-    global dfcount
-    res = dfcount.query("city=='%s'" % (city))
-    if(res.empty):
-        print("New\n\n")
-        newrow = {'city':city,'count': 1,'lat': send['lat'],'lng': send['lng']}
-        dfcount = dfcount.append(newrow, ignore_index=True)
-        dfcount.to_csv('citycount.csv', mode='w', header=True)
-    else:
-       countupdate(send, city)
-    return True
-
-def countupdate(send, city):
-    global dfcount
-    res = dfcount.query("city=='%s'" % (city))
-    if(res.empty):
-       countadd(send, city)
-    else:
-        print("Update")
-        print(dfcount.head())
-        res = dfcount.query("city=='%s'" % (city))
-        dfcount.at[res.index[res['city'] == city].tolist()[0], "count"] += 1
-        dfcount.to_csv('citycount.csv', mode='w', header=True)
-        print("AFTER RELOAD\n")
-        print(dfcount.head())
-    return True
 
 client.run(cn.DISCORD_BOT_TOKEN)
