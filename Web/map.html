@@ -19,9 +19,9 @@
   width: 30px;
   height: 30px;
   color:#fff;
-  background: #693;
+  background: #252679;
   border:solid 2px;
-  border-radius: 70% 70%;
+  border-radius: 0 70% 70%;
   box-shadow:0 0 2px #000;
   cursor: pointer;
   transform-origin:0 0;
@@ -59,8 +59,8 @@
 				latlng = {lng: resp[i].geometry.coordinates[0], lat: resp[i].geometry.coordinates[1]}
 				var icon = document.createElement('div');
 				icon.className = 'marker';
-				icon.innerHTML = "<span><b>"+resp[i].count+"</b></span>";
-				var marker = new mapboxgl.Marker()//icon)
+				icon.innerHTML = "<span><b>"+resp[i].properties.Count+"</b></span>";
+				var marker = new mapboxgl.Marker(icon)
 				.setLngLat(latlng)
 				.addTo(map);
 			}
