@@ -15,7 +15,9 @@ client = discord.Client()
 temp = []
 
 def main():
-    global df, dfuk, dfcount
+    global df, dfuk, dfcount, disable
+
+    disable = False
     df = pd.read_csv('worldcities.csv', index_col=0)
     df = df.drop(columns=["iso2","iso3","capital","population","id"])
     
@@ -34,6 +36,24 @@ async def on_ready():
 @client.event
 async def on_message(message):
     if message.author == client.user:
+        return
+
+    global disable
+
+    if message.content == "!toggle" and message.author.id in cn.mods:
+        if disable == True:
+            disable = False
+            await message.channel.send("Map Re-enabled.")
+        elif disable == False:
+            disable = True
+            await message.channel.send("Map Disabled.")
+
+    if disable == True:
+        await message.channel.send("The bot is currently down.")
+        return
+
+    if  message.content.startswith('!add') and message.author.id in cn.banned:
+        await message.channel.send("You do not have sufficient permissions to do this.")
         return
 
     if message.content.startswith('!add'):
@@ -70,11 +90,9 @@ async def on_message(message):
                     res = add(city, country)
                     rescheck = False
                     if(country == "United Kingdom"):
-                        resuk = adduk(city)  
-                        print(resuk.head)           
+                        resuk = adduk(city)         
                         rescheck = True           
                         if(resuk.empty):
-                            print("Empty")
                             rescheck = False
 
                     if(res.empty and rescheck == False):
@@ -89,8 +107,22 @@ async def on_message(message):
                             if(res.shape[1] > 1):
                                 res = res.iloc[0]
                         try: 
+                        
                             #Check dataset with current city, pass through temp array too
-                            mb.checkDataset(res, temp)
+                            ret = mb.checkDataset(res, temp)
+                            if type(ret) is dict:
+                                if(len(ret) > 1):
+                                    temp.append(ret)
+                                    if mb.countUpdate(ret['ref'], temp):
+                                        await sended.channel.send("Your city is already in the list so it has been added to the counter!\n")
+                                        return
+                                if(len(ret) == 1):
+                                    if mb.countUpdate(ret['ref'], temp):
+                                        for i in temp:
+                                            if ret['ref'] == i['ref']:
+                                                i['tempcount'] = str(int(i['tempcount']) + 1)
+                                    await sended.channel.send("Your city is already in the list so it has been added to the counter!\n")
+                                    return
                             try:
                                 #Append the return value to temp
                                 ret = mb.addToDataset(res, user)
@@ -100,12 +132,7 @@ async def on_message(message):
                             except Exception as e:
                                 await sended.channel.send("Error in addToDataset " + str(e))
                         except Exception as e:
-                            if(str(e) == "AEE"):
-                                await sended.channel.send("Your city is already in the list so it has been added to the counter!\n")
-                            else:
-                                print(e)
-                            
-                            
+                                await sended.channel.send("Error in checkDataset " + str(e))
 
     #Extra Commands
     if message.content == '!maphelp':
@@ -121,9 +148,8 @@ async def on_message(message):
     if message.content == '!reece' and message.channel == client.get_channel(cn.mentor):
         await message.channel.send("https://cdn.discordapp.com/attachments/859436872597897257/880154423958061127/reece.png")
 
-    if message.content == "?student":
-        role = message.guild.get_role(859436870425509926)
-        await message.channel.send(len(role.members))
+    if message.content == "!count":
+        await message.channel.send(len(message.guild.get_role(859436870425509926).members))
 
 #Checks string size and value for both city and country
 def validStr(city, country):
