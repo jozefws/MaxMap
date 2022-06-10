@@ -8,15 +8,18 @@ def checkDataset(res, temp):
     lng = res['lng']
     lat = res['lat']
     rescoord = [lng, lat]
+
+    # Check if theres already a feature at this location in temp.
     for entry in temp:
         if int(entry['lng']) == int(lng) and int(entry['lat']) == int(lat):
-            print("In Temp " + str(entry['tempcount']))
+            print("In Temp " + str(entry['tempcount'] + " " + entry['ref']))
             return{"ref": entry['ref']}
+
     url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features?access_token=' + constants.MAPBOX_TOKEN
     resp = requests.get(url)
+
     if(resp.status_code == 200):
         jresp = resp.json()
-     
         for data in jresp['features']:
             coords = data['geometry']['coordinates']
             count = str(data['properties']['Count'])
@@ -45,7 +48,7 @@ def addToDataset(res, user):
             "coordinates": [lng, lat]
         },
         "properties": {
-            "Name": str(user),
+            "Name": str(user) + ",",
             "Added": str(datetime.datetime.now()),
             "Count" : "1"
         }
@@ -63,7 +66,7 @@ def addToDataset(res, user):
     return{"lat": lat, "lng": lng, "ref": resp['id'], "tempcount": "1"}
 
 
-def countUpdate(ref, temp):
+def countUpdate(ref, temp, user):
     url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features/'+ ref + '?access_token=' + constants.MAPBOX_TOKEN
     header = {"Content-Type" : "application/json"}
     fetch = requests.get(url, headers=header)
@@ -75,6 +78,17 @@ def countUpdate(ref, temp):
     jresp = fetch.json()
     coords = jresp['geometry']['coordinates']
     props = jresp['properties']
+
+
+
+    users = props['Name']
+
+    usrsplit = users.split(",")
+    print(usrsplit)
+
+    if user not in usrsplit:
+        users = users +  str(user) + ","
+
     num = int(props['Count']) + 1
     for entry in temp:
         if entry['ref'] == ref: 
@@ -88,7 +102,7 @@ def countUpdate(ref, temp):
                 "coordinates": coords
             },
             "properties": {
-                "Name": str(props['Name']),
+                "Name": str(users),
                 "Added": str(props['Added']),
                 "Count" : str(num)
             }
