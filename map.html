@@ -45,13 +45,26 @@
   z-index: 30000;
 }
 
+.mapboxgl-popup {
+max-width: 200px;
+font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+
+.mapboxgl-popup-content{
+	height: auto;
+	width: auto;
+	max-height: 200px;
+	padding-top: 20px;
+	overflow-y: scroll;
+}
+
 
 		</style>
 	</head>
 <body>
 <div id="map"></div>
  
-<script>
+<script type="application/javascript">
 	mapboxgl.accessToken = MAPBOX_TOKEN;
 	const map = new mapboxgl.Map({
 		container: 'map',
@@ -83,9 +96,28 @@
 				if (tempb == null) { tempb = 1 };
 				return tempa - tempb;
 			});
+
+			//adds the markers
 			for(let i = 0; i < resp.length; i++){
 				console.log(resp[i].geometry.coordinates[0]+", "+resp[i].geometry.coordinates[1]);
 				latlng = {lng: resp[i].geometry.coordinates[0], lat: resp[i].geometry.coordinates[1]}
+
+				var names = resp[i].properties.Name.split(",");
+				var list = document.createElement('p');
+				list.name = "name-list";
+				var string = "";
+				for(let j = 0; j < names.length; j++){
+					string = string + names[j] + "</br>";
+				}
+
+				const popup = new mapboxgl.Popup({ closeOnClick: true, className : "name-list" })
+				.setLngLat(latlng)
+				.setMaxWidth("400px")
+				.setHTML(string)
+				.addTo(map);
+
+				list.innerHTML = string;
+
 				var icon = document.createElement('div');
 				icon.classList.add('marker');
 				//sets a different marker size depending on number of people living there
@@ -105,11 +137,18 @@
 				var marker = new mapboxgl.Marker(icon)
 				.setLngLat(latlng)
 				.addTo(map);
+				marker.setPopup(popup);
+				marker.togglePopup();
 			}
 		}
 	  };
 
-	  
+	  //get element and set overflow scroll to it
+	  var element = document.getElementById("mapboxgl-popup-content");
+	  if(element != null){
+	  	element.style.overflow = "scroll";
+	  }
+
 </script>
  
 </body>
