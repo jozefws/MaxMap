@@ -6,13 +6,19 @@ Updated on Fri Jun 10 01:31:49 2022
 @author: jozef sieniawski
 """
 
+import pkg_resources
+pkg_resources.require("discord.py==2.0.0a4364+g1a903272")
 import discord
+from discord.ui import Select, View
 import constants as cn
 import mapbox as mb
 import datetime;
 from positionstack import ps_search
+import traceback
 
-client = discord.Client()
+intents = discord.Intents.default()
+intents.message_content = True
+client = discord.Client(intents=intents)
 temp = []
 
 
@@ -65,6 +71,10 @@ async def on_message(message):
     if message.content == '!map':
         await message_map(message)
 
+    # Delete user entry command handling
+    if message.content == '!delete':
+        await message_delete(message)
+
 
 
 #Checks string size and value for query
@@ -88,7 +98,7 @@ async def message_toggle(message):
 # Logs message to spam channel set in constants.py/cn.spam
 async def message_log(message):
     embedVar = discord.Embed(title="New Command to MaxMap", color=0xff0080)
-    embedVar.set_author(name=(str(message.author.nick) + " | " + str(message.author.name) + str(message.author.discriminator)), icon_url=message.author.avatar_url)
+    embedVar.set_author(name=(str(message.author.nick) + " | " + str(message.author.name) + str(message.author.discriminator)), icon_url=message.author.display_avatar.url)
     embedVar.add_field(name="Message:", value=message.content, inline=False)
     embedVar.add_field(name="Time:", value=str(datetime.datetime.now()), inline=False)
     await client.get_channel(cn.spam).send(embed=embedVar)
@@ -112,7 +122,7 @@ async def message_help(message):
 async def message_error(e, sended):
     await sended.channel.send("An error has occured and has been logged, give me a chance to look what happened lol.")
     embedVar = discord.Embed(title="MaxMap ERROR", color=0xf56342)
-    embedVar.add_field(name="Message:", value=str("Error:" + e), inline=False)
+    embedVar.add_field(name="Message:", value=str("Error: " + e + " " + str(traceback.format_exc())), inline=False)
     await client.get_channel(cn.spam).send(embed=embedVar)
 
 
@@ -139,7 +149,8 @@ async def message_add(message):
         res = ps_search(strip)
     except Exception as e:
         message_error(e, sended)
-    
+        return
+
     try: 
         #Check dataset with current city, pass through temp array too
         ret = mb.checkDataset(res, temp)
@@ -158,14 +169,66 @@ async def message_add(message):
                 return
         try:
             #Append the return value to temp
-            ret = mb.addToDataset(res, message.author)
+            ret = mb.addToDataset(res, message.author, strip)
             temp.append(ret)
             #Send update to channel sent from
             await sended.channel.send("City/Town Added to Map! - Give it a few minutes to update.")
         except Exception as e:
-            await message_error(str(e) + " Mapbox Dataset error", sended)
+            await message_error(str(e) + " Mapbox Dataset error 1a", sended)
     except Exception as e:
-            await message_error(str(e) + " Mapbox Dataset error", sended)   
+            await message_error(str(e) + " Mapbox Dataset error 1b", sended)   
+
+async def message_delete(message):
+    global sended
+    sended = message
+    res = ""
+    try:
+        res = mb.userList(str(message.author))
+    except Exception as e:
+        await message_error(str(e) + " Mapbox Dataset error 2a", sended)
+        return
+    
+    if res == None or res == [] or res == "":
+        await sended.channel.send("You have no cities in the list. (message_delete 1)")
+        return
+
+    await message_delete_select(res, message)
+
+async def message_delete_select(res, message):
+    if res == None or res == [] or res == "":
+        await message.channel.send("You do not have any cities in the list. (message_delete 2)")
+        return
+    view = View()
+    select = Select(placeholder="Hi, "+ str(message.author) +",  Select a city to delete:", max_values=1)
+    for feature in res:
+        if feature['properties']['Title'] == "":
+            title = "Unknown"
+        else:
+            title = feature['properties']['Title']
+
+        select.add_option(label = title, value = feature['id'])
+
+    async def entry_delete(interaction):
+        if interaction.response.is_done():
+            return
+        try:
+            mb.updateFeatureNames(str(interaction.user), select.values[0])
+            await interaction.response.send_message("City/Town Deleted from Map!")
+        except Exception as e:
+            await message_error(str(e) + " Mapbox Dataset error 2b", sended)
+            return
+
+    select.callback = entry_delete
+    
+    view.add_item(select)
+    await sended.channel.send("Please select a city from the list to remove - There may be a delay between deletion and the request being propagated to the map.", view=view)
+    return True
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

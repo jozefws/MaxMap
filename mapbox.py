@@ -3,12 +3,13 @@ import requests
 import uuid
 import json
 import datetime;
+import traceback
 
 def checkDataset(res, temp):
     lng = res['lng']
     lat = res['lat']
     rescoord = [lng, lat]
-
+ 
     # Check if theres already a feature at this location in temp.
     for entry in temp:
         if int(entry['lng']) == int(lng) and int(entry['lat']) == int(lat):
@@ -33,7 +34,7 @@ def checkDataset(res, temp):
         raise Exception("Could not fetch databases, code: " + str(code))
 
 
-def addToDataset(res, user):
+def addToDataset(res, user, title):
     lng = res['lng']
     lat = res['lat']
     feature_id = str(uuid.uuid4())
@@ -48,6 +49,7 @@ def addToDataset(res, user):
             "coordinates": [lng, lat]
         },
         "properties": {
+            "Title": str(title),
             "Name": str(user) + ",",
             "Added": str(datetime.datetime.now()),
             "Count" : "1"
@@ -79,8 +81,6 @@ def countUpdate(ref, temp, user):
     coords = jresp['geometry']['coordinates']
     props = jresp['properties']
 
-
-
     users = props['Name']
 
     usrsplit = users.split(",")
@@ -102,6 +102,7 @@ def countUpdate(ref, temp, user):
                 "coordinates": coords
             },
             "properties": {
+                "Title": props['Title'],
                 "Name": str(users),
                 "Added": str(props['Added']),
                 "Count" : str(num)
@@ -114,3 +115,76 @@ def countUpdate(ref, temp, user):
         resp.close()
         raise Exception("Could not add counter to feature, code: " + str(code))
     return True
+
+def userList(author):
+    url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features?access_token=' + constants.MAPBOX_TOKEN
+    resp = requests.get(url)
+    features = []
+    if(resp.status_code == 200):
+        jresp = resp.json()
+        for data in jresp['features']:
+            #if name matches author add to features list
+            if data['properties']['Name'].find(author) != -1:
+                features.append(data)
+
+        return features
+    else:
+        code = resp.status_code
+        resp.close()
+        raise Exception("Could not fetch databases, code: " + str(code))
+
+def updateFeatureNames(author, feature_id):
+    url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features?access_token=' + constants.MAPBOX_TOKEN
+    resp = requests.get(url)
+
+    if(resp.status_code == 200):
+        jresp = resp.json()
+        for data in jresp['features']:
+            if data['id'] == feature_id:
+                if data['properties']['Name'].find(author) != -1 and int(data['properties']['Count']) == 1:
+                    print("Delete feature, code:" + str(feature_id) + " SINGLE")
+                    url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features/'+ feature_id + '?access_token=' + constants.MAPBOX_TOKEN
+                    header = {"Content-Type" : "application/json"}
+                    resp = requests.delete(url, headers=header)
+                    if(resp.status_code != 200):
+                        code = resp.status_code
+                        resp.close()
+                        raise Exception("Could not delete feature, code: " + str(code))
+                    return True
+                if data['properties']['Name'].find(author) != -1 and int(data['properties']['Count']) > 1:
+                    print("Delete user in feature, code:" + str(feature_id) + " " + str(author))
+                    data['properties']['Name'] = data['properties']['Name'].replace(author+",", "")
+
+                    url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features/'+ ref + '?access_token=' + constants.MAPBOX_TOKEN
+                    header = {"Content-Type" : "application/json"}
+                    fetch = requests.get(url, headers=header)
+                    if(fetch.status_code != 200):
+                        print(fetch.content)
+                        code = fetch.status_code
+                        fetch.close()
+                        raise Exception("Could not fetch feature, code: " + str(code))
+                    data = {
+                        "id": ref,
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": coords
+                            },
+                            "properties": {
+                                "Title": props['Title'],
+                                "Name": str(users),
+                                "Added": str(props['Added']),
+                                "Count" : str(num)
+                            }
+                        }
+                    return True
+                
+                
+        raise Exception("Could not find feature")
+    else:
+        code = resp.status_code
+        resp.close()
+        raise Exception("Could not fetch databases, code: " + str(code))
+        
+if __name__ == '__main__':
+    print("Enter discord username with discriminator:")
