@@ -13,7 +13,6 @@ def checkDataset(res, temp):
     # Check if theres already a feature at this location in temp.
     for entry in temp:
         if int(entry['lng']) == int(lng) and int(entry['lat']) == int(lat):
-            print("In Temp " + str(entry['tempcount'] + " " + entry['ref']))
             return{"ref": entry['ref']}
 
     url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features?access_token=' + constants.MAPBOX_TOKEN
@@ -25,7 +24,6 @@ def checkDataset(res, temp):
             coords = data['geometry']['coordinates']
             count = str(data['properties']['Count'])
             if coords == rescoord:
-                print("Not In Temp " + count)
                 return{"lat": coords[1], "lng": coords[0], "ref": data['id'], "tempcount": str(int(count) + 1)}
         return True
     else:
@@ -59,7 +57,6 @@ def addToDataset(res, user, title):
     resp = requests.put(url, headers=header, data=json.dumps(data))
 
     if(resp.status_code != 200):
-        print(resp.content)
         code = resp.status_code
         resp.close()
         raise Exception("Could not add to dataset, code: " + str(code))
@@ -73,7 +70,6 @@ def countUpdate(ref, temp, user):
     header = {"Content-Type" : "application/json"}
     fetch = requests.get(url, headers=header)
     if(fetch.status_code != 200):
-        print(fetch.content)
         code = fetch.status_code
         fetch.close()
         raise Exception("Could not fetch feature, code: " + str(code))
@@ -84,7 +80,6 @@ def countUpdate(ref, temp, user):
     users = props['Name']
 
     usrsplit = users.split(",")
-    print(usrsplit)
 
     if user not in usrsplit:
         users = users +  str(user) + ","
@@ -110,7 +105,6 @@ def countUpdate(ref, temp, user):
     }
     resp = requests.put(url, headers=header, data=json.dumps(data))
     if(resp.status_code != 200):
-        print(resp.content)
         code = resp.status_code
         resp.close()
         raise Exception("Could not add counter to feature, code: " + str(code))
@@ -143,48 +137,56 @@ def updateFeatureNames(author, feature_id):
             if data['id'] == feature_id:
                 if data['properties']['Name'].find(author) != -1 and int(data['properties']['Count']) == 1:
                     print("Delete feature, code:" + str(feature_id) + " SINGLE")
-                    url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features/'+ feature_id + '?access_token=' + constants.MAPBOX_TOKEN
-                    header = {"Content-Type" : "application/json"}
-                    resp = requests.delete(url, headers=header)
-                    if(resp.status_code != 200):
-                        code = resp.status_code
-                        resp.close()
-                        raise Exception("Could not delete feature, code: " + str(code))
-                    return True
+                    try:
+                        delete_feature(feature_id)
+                    except:
+                        raise Exception("Could not delete feature, code: " + str(feature_id))
                 if data['properties']['Name'].find(author) != -1 and int(data['properties']['Count']) > 1:
                     print("Delete user in feature, code:" + str(feature_id) + " " + str(author))
-                    data['properties']['Name'] = data['properties']['Name'].replace(author+",", "")
+                    names = data['properties']['Name'].replace(author+",", "")
 
-                    url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features/'+ ref + '?access_token=' + constants.MAPBOX_TOKEN
-                    header = {"Content-Type" : "application/json"}
-                    fetch = requests.get(url, headers=header)
-                    if(fetch.status_code != 200):
-                        print(fetch.content)
-                        code = fetch.status_code
-                        fetch.close()
-                        raise Exception("Could not fetch feature, code: " + str(code))
-                    data = {
-                        "id": ref,
+                    if names == "":
+                        try:
+                            delete_feature(feature_id)
+                        except:
+                            raise Exception("Could not delete feature, code: " + str(feature_id))
+                    new_data = {
+                        "id": feature_id,
                             "type": "Feature",
                             "geometry": {
                                 "type": "Point",
-                                "coordinates": coords
+                                "coordinates": data['geometry']['coordinates']
                             },
                             "properties": {
-                                "Title": props['Title'],
-                                "Name": str(users),
-                                "Added": str(props['Added']),
-                                "Count" : str(num)
+                                "Title": str(data['Title']),
+                                "Name": names,
+                                "Added": str(data['Added']),
+                                "Count" : data['Count']
                             }
                         }
+
+                    header = {"Content-Type" : "application/json"}
+                    resp = requests.put(url, headers=header, data=json.dumps(new_data))
+                    if(resp.status_code != 200):
+                        code = resp.status_code
+                        resp.close()
+                        raise Exception("Could not add delete name from feature, code: " + str(code))
                     return True
-                
-                
         raise Exception("Could not find feature")
     else:
         code = resp.status_code
         resp.close()
         raise Exception("Could not fetch databases, code: " + str(code))
         
+def delete_feature(feature_id):
+    url = 'https://api.mapbox.com/datasets/v1/jozef-7/' + constants.MAPBOX_DATASETID + '/features/'+ feature_id + '?access_token=' + constants.MAPBOX_TOKEN
+    header = {"Content-Type" : "application/json"}
+    resp = requests.delete(url, headers=header)
+    if(resp.status_code != 204):
+        code = resp.status_code
+        resp.close()
+        raise Exception("Could not delete feature, code: " + str(code))
+    return True
+    
 if __name__ == '__main__':
     print("Enter discord username with discriminator:")
