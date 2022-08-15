@@ -1,0 +1,24 @@
+{
+  "name": "maxmap",
+  "version": "1.0.0",
+  "description": "- Map for Discord, has every city > 10k population. Need to host your own map and Mapbox Credentials, modify discord channels.",
+  "main": "mapbox.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jozefws/MaxMap.git"
+  },
+  "author": "Jozef Sieniawski",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jozefws/MaxMap/issues"
+  },
+  "homepage": "https://github.com/jozefws/MaxMap#readme",
+  "dependencies": {
+    "@discordjs/rest": "^1.0.1",
+    "discord.js": "^14.2.0",
+    "express": "^4.18.1"
+  }
+}

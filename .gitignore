@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+node_modules
+.env
+config.json
+
+Web/constants.js
+
 # Distribution / packaging
 constants.py
 .Python
